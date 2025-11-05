@@ -5,7 +5,7 @@ import { Sun, Cloud, CloudRain, MapPin, Calendar, Loader2, RefreshCw, AlertCircl
 // Weather API Service
 class WeatherService {
   constructor() {
-    this.API_KEY = process.env.REACT_APP_WEATHER_API_KEY || 'your_api_key_here';
+    this.API_KEY = import.meta.env.VITE_WEATHER_API_KEY || 'your_api_key_here';
     this.BASE_URL = 'https://api.openweathermap.org/data/2.5';
   }
 

@@ -6,12 +6,12 @@ function Footer() {
       <h2 className="text-center text-gray-500">
         Created by{" "}
         <a
-          href="https://github.com/abhaywadkar04"
+          href="https://github.com/Aryanzs"
           target="_blank"
           rel="noopener noreferrer"
           className="font-bold hover:underline"
         >
-          Abhay
+          Aryan
         </a>{" "}
         AI trip planner App
       </h2>
