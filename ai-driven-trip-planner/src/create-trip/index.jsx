@@ -757,36 +757,88 @@ function CreateTrip() {
 
             {/* Number of Days Field */}
 
-            <div className="bg-white rounded-2xl p-8 shadow-lg border border-gray-100 hover:shadow-xl transition-all duration-300">
-              <div className="flex items-center gap-3 mb-6">
-                <div className="w-8 h-8 bg-green-100 rounded-lg flex items-center justify-center">
-                  <span className="text-green-600">📅</span>
-                </div>
+{/* Number of Days Field */}
+<div className="bg-white rounded-2xl p-8 shadow-lg border border-gray-100 hover:shadow-xl transition-all duration-300">
+  <div className="flex items-center gap-3 mb-6 flex-wrap">
+    <div className="w-8 h-8 bg-green-100 rounded-lg flex items-center justify-center">
+      <span className="text-green-600">📅</span>
+    </div>
 
-                <h2 className="text-2xl font-bold text-gray-800">
-                  How many days are you planning your trip?
-                </h2>
+    <h2 className="text-2xl font-bold text-gray-800">
+      How many days are you planning your trip?
+    </h2>
 
-                {(!formData?.noOfDays || parseInt(formData.noOfDays) <= 0) && (
-                  <span className="text-red-500 text-sm ml-2">*Required</span>
-                )}
-              </div>
+    {(!formData?.noOfDays ||
+      parseInt(formData.noOfDays, 10) < 1 ||
+      parseInt(formData.noOfDays, 10) > 4) && (
+      <span className="text-red-500 text-sm ml-2">
+        *Required (1–4 days)
+      </span>
+    )}
+  </div>
 
-              <Input
-                placeholder="Ex. 3"
-                type="number"
-                min="1"
-                max="30"
-                className={`border-2 rounded-xl px-6 py-4 text-lg transition-all duration-200 ${
-                  formData?.noOfDays && parseInt(formData.noOfDays) > 0
-                    ? "border-green-300 focus:border-green-500 focus:ring-4 focus:ring-green-100"
-                    : "border-gray-200 focus:border-green-500 focus:ring-4 focus:ring-green-100"
+  {/* Derive a safe selectedDays value from formData */}
+  {(() => {
+    const selectedDays = (() => {
+      const raw = parseInt(formData?.noOfDays, 10);
+      if (isNaN(raw) || raw < 1) return 1;
+      if (raw > 4) return 4;
+      return raw;
+    })();
+
+    return (
+      <>
+        {/* Slider + value display */}
+        <div className="flex items-center gap-4">
+          <input
+            type="range"
+            min="1"
+            max="4"
+            value={selectedDays}
+            onChange={(e) =>
+              handleChange("noOfDays", e.target.value.toString())
+            }
+            className="flex-1 accent-green-500 cursor-pointer"
+          />
+          <div className="w-10 h-10 rounded-full bg-green-50 flex items-center justify-center border border-green-200">
+            <span className="text-lg font-semibold text-green-700">
+              {selectedDays}
+            </span>
+          </div>
+        </div>
+
+        {/* Quick select pills */}
+        <div className="mt-3 flex flex-wrap gap-2">
+          {[1, 2, 3, 4].map((day) => {
+            const isActive = selectedDays === day;
+            return (
+              <button
+                key={day}
+                type="button"
+                onClick={() =>
+                  handleChange("noOfDays", day.toString())
+                }
+                className={`px-3 py-1.5 text-sm rounded-full border transition-all ${
+                  isActive
+                    ? "bg-green-600 text-white border-green-600 shadow-sm"
+                    : "bg-white text-gray-700 border-gray-200 hover:bg-green-50"
                 }`}
-                onChange={(e) => {
-                  handleChange("noOfDays", e.target.value);
-                }}
-              />
-            </div>
+              >
+                {day} Day{day > 1 ? "s" : ""}
+              </button>
+            );
+          })}
+        </div>
+
+        <p className="mt-2 text-xs text-gray-500">
+          For now, trips are supported for{" "}
+          <span className="font-semibold">1–4 days</span>.
+        </p>
+      </>
+    );
+  })()}
+</div>
+
 
             {/* Budget Options */}
 

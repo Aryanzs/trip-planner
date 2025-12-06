@@ -201,9 +201,9 @@ const WeatherIcon = ({ type, className = "w-8 h-8" }) => {
     cloud: <Cloud className={`${className} text-gray-500`} />,
     rain: <CloudRain className={`${className} text-blue-500`} />,
     partlyCloud: (
-      <div className="relative">
-        <Sun className={`${className.replace('w-8 h-8', 'w-6 h-6')} text-yellow-500 absolute top-0 left-1`} />
-        <Cloud className={`${className.replace('w-8 h-8', 'w-6 h-6')} text-gray-400 absolute top-1 left-0`} />
+      <div className="relative w-10 h-10 sm:w-12 sm:h-12 flex items-center justify-center">
+        <Sun className="w-5 h-5 sm:w-6 sm:h-6 text-yellow-500 absolute -top-0.5 -right-0.5" />
+        <Cloud className="w-6 h-6 sm:w-7 sm:h-7 text-gray-400 absolute bottom-0 left-0" />
       </div>
     )
   };
@@ -220,16 +220,27 @@ const MonthlyWeatherCard = ({ data, isSelected, onClick }) => {
       } ${data.isCurrentMonth ? 'ring-2 ring-blue-200' : ''}`}
       onClick={onClick}
     >
-      <div className="text-sm font-semibold text-gray-600 mb-2">{data.month}</div>
-      <div className="flex justify-center mb-3">
+      {/* Month name */}
+      <div className="text-sm font-semibold text-gray-600 mb-3">{data.month}</div>
+      
+      {/* Weather icon with fixed height container */}
+      <div className="flex justify-center items-center h-12 sm:h-14 mb-3">
         <WeatherIcon type={data.icon} />
       </div>
-      <div className="text-xs font-medium text-gray-700 mb-2">{data.temp}</div>
-      <div className={`text-xs text-white px-2 py-1 rounded-full ${data.aqiColor}`}>
+      
+      {/* Temperature with fixed height to prevent overlap */}
+      <div className="text-xs font-medium text-gray-700 mb-3 min-h-[20px] flex items-center justify-center">
+        {data.temp}
+      </div>
+      
+      {/* AQI label */}
+      <div className={`text-xs text-white px-2 py-1 rounded-full ${data.aqiColor} break-words`}>
         {data.aqiLabel}
       </div>
+      
+      {/* Current month indicator */}
       {data.isCurrentMonth && (
-        <div className="mt-1">
+        <div className="mt-2">
           <div className="w-2 h-2 bg-blue-500 rounded-full mx-auto"></div>
         </div>
       )}
@@ -264,10 +275,13 @@ const WeatherRecommendations = ({ recommendations }) => {
 };
 
 // Main Weather Dashboard Component
-const WeatherDashboard = ({ 
-  location, 
-  className = "", 
-  showRecommendations = true 
+
+
+// Main Weather Dashboard Component
+const WeatherDashboard = ({
+  location,
+  className = "",
+  showRecommendations = true,
 }) => {
   const [weatherData, setWeatherData] = useState(null);
   const [loading, setLoading] = useState(false);
@@ -279,40 +293,44 @@ const WeatherDashboard = ({
 
   const loadWeatherData = async (locationString) => {
     if (!locationString) {
-      console.log('No location provided to weather component');
+      console.log("No location provided to weather component");
       return;
     }
-    
-    console.log('Loading weather for location:', locationString);
+
+    console.log("Loading weather for location:", locationString);
     setLoading(true);
     setError(null);
-    
+
     try {
       const data = await weatherService.getMonthlyWeather(locationString);
       setWeatherData(data);
-      
+
       if (showRecommendations) {
         const recs = weatherService.getWeatherRecommendations(data);
         setRecommendations(recs);
       }
-      
+
       // Auto-select current month
-      const currentMonthIndex = data.monthlyData.findIndex(m => m.isCurrentMonth);
+      const currentMonthIndex = data.monthlyData.findIndex(
+        (m) => m.isCurrentMonth
+      );
       if (currentMonthIndex !== -1) {
         setSelectedMonth(currentMonthIndex);
       }
-      
-      console.log('Weather data loaded successfully:', data);
+
+      console.log("Weather data loaded successfully:", data);
     } catch (err) {
-      const errorMessage = err.message || 'Failed to load weather data';
+      const errorMessage = err.message || "Failed to load weather data";
       setError(errorMessage);
-      console.error('Weather loading error:', err);
-      
+      console.error("Weather loading error:", err);
+
       // Show user-friendly error messages
-      if (errorMessage.includes('not found')) {
-        setError(`Unable to find weather data for "${locationString}". Please check if the location name is correct.`);
-      } else if (errorMessage.includes('API key')) {
-        setError('Weather service configuration error. Please check API key.');
+      if (errorMessage.includes("not found")) {
+        setError(
+          `Unable to find weather data for "${locationString}". Please check if the location name is correct.`
+        );
+      } else if (errorMessage.includes("API key")) {
+        setError("Weather service configuration error. Please check API key.");
       }
     } finally {
       setLoading(false);
@@ -340,27 +358,38 @@ const WeatherDashboard = ({
   }
 
   return (
-    <div className={`bg-white rounded-2xl shadow-lg p-6 ${className}`}>
-      {/* Header */}
-      <div className="flex items-center justify-between mb-6">
-        <div className="flex items-center justify-between w-full">
-          <h2 className="text-2xl font-bold text-gray-900 flex items-center gap-2">
-            <MapPin className="w-6 h-6 text-blue-600" />
-            Weather in {weatherData?.location?.split(',')[0] || location}
+    <div className={`bg-white rounded-2xl shadow-lg p-4 sm:p-6 ${className}`}>
+      {/* Header - responsive layout */}
+      <div className="mb-6">
+        <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
+          {/* Title */}
+          <h2 className="text-xl sm:text-2xl font-bold text-gray-900 flex items-center gap-2">
+            <MapPin className="w-5 h-5 sm:w-6 sm:h-6 text-blue-600" />
+            <span className="truncate">
+              Weather in {weatherData?.location?.split(",")[0] || location}
+            </span>
           </h2>
+
+          {/* Right side: best time + refresh */}
           {weatherData && (
-            <div className="flex items-center gap-4">
-              <div className="flex items-center gap-2 bg-green-100 text-green-800 px-4 py-2 rounded-full text-sm font-medium">
+            <div className="flex flex-col items-start gap-2 sm:flex-row sm:items-center sm:gap-3 md:gap-4">
+              <div className="flex items-center gap-2 bg-green-100 text-green-800 px-3 py-1.5 sm:px-4 sm:py-2 rounded-full text-xs sm:text-sm font-medium">
                 <Calendar className="w-4 h-4" />
-                Best time to visit {weatherData.bestTimeToVisit}
+                <span className="whitespace-nowrap">
+                  Best time: {weatherData.bestTimeToVisit}
+                </span>
               </div>
+
               <button
                 onClick={handleRefresh}
                 disabled={loading}
-                className="flex items-center gap-2 px-3 py-2 text-sm text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-lg transition-colors"
+                className="flex items-center gap-1.5 sm:gap-2 px-2.5 py-1.5 sm:px-3 sm:py-2 text-xs sm:text-sm text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-lg transition-colors"
               >
-                <RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} />
-                Refresh
+                <RefreshCw
+                  className={`w-4 h-4 ${loading ? "animate-spin" : ""}`}
+                />
+                <span className="hidden sm:inline">Refresh</span>
+                <span className="sm:hidden">Reload</span>
               </button>
             </div>
           )}
@@ -395,13 +424,13 @@ const WeatherDashboard = ({
       {/* Weather Data */}
       {weatherData && !loading && (
         <>
-          {/* Recommendations */}
+          {/* Recommendations (same on all devices) */}
           {showRecommendations && (
             <WeatherRecommendations recommendations={recommendations} />
           )}
 
-          {/* Monthly Weather Grid */}
-          <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 xl:grid-cols-12 gap-4 mb-6">
+          {/* Monthly Weather - Desktop/Tablet Grid */}
+          <div className="hidden md:grid md:grid-cols-4 lg:grid-cols-6 xl:grid-cols-12 gap-4 mb-6">
             {weatherData.monthlyData.map((data, index) => (
               <MonthlyWeatherCard
                 key={index}
@@ -412,30 +441,51 @@ const WeatherDashboard = ({
             ))}
           </div>
 
-          {/* Selected Month Details */}
+          {/* Monthly Weather - Mobile Horizontal Scroll */}
+          <div className="md:hidden -mx-4 px-4 mb-6">
+            <div className="flex gap-3 overflow-x-auto pb-2 scrollbar-thin scrollbar-thumb-gray-300">
+              {weatherData.monthlyData.map((data, index) => (
+                <div key={index} className="min-w-[120px] max-w-[140px]">
+                  <MonthlyWeatherCard
+                    data={data}
+                    isSelected={selectedMonth === index}
+                    onClick={() => handleMonthSelect(index)}
+                  />
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* Selected Month Details (already mobile-friendly with single-column grid) */}
           {selectedMonth !== null && (
-            <div className="bg-gray-50 rounded-xl p-6">
-              <h3 className="text-lg font-semibold text-gray-900 mb-4">
+            <div className="bg-gray-50 rounded-xl p-4 sm:p-6">
+              <h3 className="text-base sm:text-lg font-semibold text-gray-900 mb-4">
                 {weatherData.monthlyData[selectedMonth].month} Weather Details
               </h3>
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-3 sm:gap-4">
                 <div className="bg-white rounded-lg p-4">
-                  <div className="text-2xl font-bold text-gray-900">
+                  <div className="text-xl sm:text-2xl font-bold text-gray-900">
                     {weatherData.monthlyData[selectedMonth].temp}
                   </div>
                   <div className="text-sm text-gray-600">Temperature Range</div>
                 </div>
                 <div className="bg-white rounded-lg p-4">
-                  <div className="text-2xl font-bold text-gray-900">
+                  <div className="text-xl sm:text-2xl font-bold text-gray-900">
                     {weatherData.monthlyData[selectedMonth].aqi}
                   </div>
-                  <div className="text-sm text-gray-600">Air Quality Index</div>
+                  <div className="text-sm text-gray-600">
+                    Air Quality Index
+                  </div>
                 </div>
                 <div className="bg-white rounded-lg p-4">
-                  <div className="text-lg font-semibold text-gray-900 capitalize">
-                    {weatherData.monthlyData[selectedMonth].icon.replace(/([A-Z])/g, ' $1').trim()}
+                  <div className="text-base sm:text-lg font-semibold text-gray-900 capitalize">
+                    {weatherData.monthlyData[selectedMonth].icon
+                      .replace(/([A-Z])/g, " $1")
+                      .trim()}
                   </div>
-                  <div className="text-sm text-gray-600">Weather Condition</div>
+                  <div className="text-sm text-gray-600">
+                    Weather Condition
+                  </div>
                 </div>
               </div>
             </div>
